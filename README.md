@@ -10,7 +10,7 @@ A suite of custom AI tools designed to streamline workflows, extract insights, a
 
 A Google Business Review harvester and analysis tool. Echo scrapes reviews, extracts insights with GPT-4, and packages results into clean CSVs.  
 **Tech stack:** Python · Streamlit · GPT-4 · Airtable · Zapier  
-→ [View Echo README](./echo-scraper/README.md)
+→ [View Echo README](./Echo/README.md)
 
 ### 2. Nemesis *(Coming Soon)*
 
