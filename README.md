@@ -6,7 +6,7 @@ A suite of custom AI tools designed to streamline workflows, extract insights, a
 
 ## 🚀 Projects
 
-### 1. [Echo](./echo-scraper)
+### 1. [Echo](./Echo)
 
 A Google Business Review harvester and analysis tool. Echo scrapes reviews, extracts insights with GPT-4, and packages results into clean CSVs.  
 **Tech stack:** Python · Streamlit · GPT-4 · Airtable · Zapier  
