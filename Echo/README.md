@@ -1,36 +1,76 @@
-# Echo – Google Review Harvester
+Echo – Google Business Review Harvester (v1.7)
 
-**Echo** is a custom AI-powered tool that scrapes Google Business reviews and extracts structured insights using GPT-4. Built with Streamlit, Python, and automation in mind, Echo helps businesses quickly access and understand customer feedback.
+Echo is a streamlined Google Business review scraper designed for flexible data extraction and delivery. Built with Python, Streamlit, and Google Drive integration, Echo enables small businesses or consultants to quickly capture customer reviews and package them into shareable reports.
 
----
+⸻
 
-## 🔧 Features
+🚀 Key Features
+	•	Scrapes visible Google Business reviews
+	•	Extracts review text, timestamps, ratings, images, and structured tags
+	•	Handles fallbacks for malformed or missing review text
+	•	Exports clean CSVs with optional image ZIP packaging
+	•	Includes business name automatically in all file outputs
+	•	Optional Completed Reports ZIP for one-step delivery
+	•	Uploads files directly to Google Drive for client handoff
+	•	Streamlit interface for simple, client-friendly use
+	•	Headless browser option for faster, non-visual scraping
+	•	Debug log option for traceability and testing
 
-- Scrapes visible Google Business reviews
-- Extracts review text, timestamps, and optional metadata
-- Supports CSV export and basic data cleaning
-- Uses GPT-4 to extract review summaries and insights
-- Streamlit interface for user-friendly interaction
+⸻
 
----
-
-## 🛠️ Built With
-
-- **Python 3.11**
-- **Streamlit**
-- **OpenAI API (GPT-4)**
-- **Pandas**
-- **BeautifulSoup**
-- **Requests**
-
----
-
-## 📁 Folder Structure
-
-```bash
+📂 Folder Structure
 echo-scraper/
-├── echo_Google_Business_Harvester_v1.5.py   # Main script
-├── requirements.txt                         # Required Python packages
-├── README.md                                # This file
-├── LICENSE                                  # MIT License
-├── exports/                                 # Optional: exported review data
+├── echo_Google_Business_HTML_v1.7.py   # Main script
+├── drive_uploader.py                    # Handles Google Drive uploads
+├── requirements.txt                     # Required Python packages
+├── README.md                            # This file
+├── LICENSE                              # MIT License
+├── exports/                             # Temporary images folder (auto-deleted post-run)
+
+
+⸻
+
+🛠️ Built With
+	•	Python 3.11
+	•	Streamlit
+	•	Undetected Chromedriver (Selenium)
+	•	Pandas
+	•	Google API Client (Drive integration)
+	•	Requests
+
+⸻
+
+⚙️ How It Works
+	1.	Paste the Google Maps Reviews tab link into Echo’s interface.
+	2.	Choose options for:
+	•	Headless mode (faster scraping)
+	•	Standard or Completed Reports ZIP delivery
+	3.	Click Start Extraction
+	4.	Echo scrapes the reviews, extracts images, and exports all data:
+	•	CSV
+	•	Images ZIP
+	•	Debug log (optional, for fallback review trace)
+	5.	All outputs are uploaded directly to Google Drive.
+
+⸻
+
+📈 Use Cases
+	•	UX research and product feedback collection
+	•	Small business review management
+	•	Competitive analysis of public reviews
+	•	Client report generation (via Completed Reports ZIP)
+
+⸻
+
+🔮 Coming in Echo v2
+	•	Web-hosted SaaS version
+	•	Built-in LLM analysis for summarization and insights
+	•	Verifier Tool for review count consistency
+	•	Deduplication across multiple runs
+	•	Dashboard visualization features
+
+⸻
+
+📄 License
+
+MIT License
