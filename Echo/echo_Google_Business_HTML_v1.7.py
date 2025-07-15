@@ -1,6 +1,10 @@
-# 
-# OFFICIAL VERSION v1.5 (Final)
-# This script builds on v1.4 and finalizes the stable release of the Echo Google Business Review Harvester.
+#
+# OFFICIAL VERSION v1.7 (Final Echo v1 Release)
+# This script builds on v1.6 and introduces the following enhancements:
+# - Adds automated business name inclusion in all exported filenames (CSV, images ZIP, debug log, combined ZIP)
+# - Ensures debug log always uploads directly to the Debug Logs folder, regardless of pipeline path
+# - Finalizes optional Completed Reports ZIP export, skipping individual uploads when selected
+# - Confirms stable, polished pipeline outputs for Echo v1 completion
 #
 # Confirmed Capabilities:
 # - Stable scraping for businesses with up to ~300 reviews (confirmed through stress testing)
@@ -8,18 +12,22 @@
 # - Clean filtering of owner replies, blank/deleted reviews, and UI noise
 # - Structured fallbacks for missing or malformed review text
 # - Headless mode toggle for faster, non-visual scraping
-# - Outputs polished CSV + images with accurate metadata
+# - Outputs polished CSV + images with accurate metadata and business name in filenames
+# - Optional Completed Reports ZIP pipeline, or client-ready modular exports
+# - Debug log uploads automatically to Drive for review traceability
 #
 # Known Limitations:
 # - May stall or degrade above ~400 reviews
 # - Review count comparison is currently manual (Verifier Tool pending)
-# - May get stuck on loading spinners when attempting to scroll beyond ~300–400 reviews (review elements may not finish loading)
 # - Reviews containing videos or multiple images with a "+" button are not fully captured; current scraper only retrieves visible first image
 #
-# Future Expansion:
-# A Verifier Tool is planned to compare the CSV against the live review page, enabling scalable accuracy checks as review volume increases. This will allow trustable outputs even for datasets exceeding 500+ reviews.
-# - Investigate workaround for infinite spinner/loading stall when scraping higher review counts (potential: timed scroll with exit trigger or detection of loading stall)
-# - Add support for reviews that include videos or image sets behind "+2"/"+3" overlays — possibly by triggering thumbnail expansion or capturing links to media
+# Future Expansion (Echo v2 Plans):
+# - Verifier Tool to compare the CSV against live review pages for scalable accuracy checks
+# - Workaround for infinite spinner/loading stall when scraping higher review counts
+# - Support for expanded image sets and video reviews
+# - Deduplication logic for cross-run consistency
+# - LLM-based insight generation and client dashboard features
+# - Web-hosted SaaS version with UX redesign
 #
 import time
 import os
@@ -36,6 +44,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from datetime import datetime
 import urllib.request
+from drive_uploader import upload_file_to_drive
 def clean_final_text(raw_text):
     if not raw_text:
         return ""
@@ -45,11 +54,9 @@ def clean_final_text(raw_text):
     return raw_text.strip()
 
 
-def launch_browser():
+def launch_browser(headless_mode=False):
     options = uc.ChromeOptions()
     options.add_argument("--disable-blink-features=AutomationControlled")
-    # Use headless_mode from streamlit state if present, else default to False
-    headless_mode = st.session_state.get("headless_mode", False)
     if headless_mode:
         options.add_argument("--headless=new")
     else:
@@ -60,16 +67,45 @@ def launch_browser():
 
 
 def main():
-    st.title("Echo: Google Business Review Harvester")
+    st.title("Echo: Review Extraction Made Simple")
+    st.markdown("""
+    Paste a Google Maps link to the business’s **Reviews tab**, and Echo will extract all available customer reviews, clean the data, and prepare it for download or further analysis.
+    """)
     # Add headless mode checkbox at the top
-    headless_mode = st.checkbox("Run in headless mode for faster scraping (no visible browser)", value=False, key="headless_mode")
-    url = st.text_input("Enter the direct URL to the Google Maps business reviews page:")
+    url = st.text_input("")
 
-    # Scraper logic runs only if not already scraped for this session and url is provided
-    if url and "scraped" not in st.session_state:
+    st.caption("🔗 **Tip:** Copy the link from the **Reviews tab**, not just the main business link.")
+    st.markdown("---")  # Visual separator
+
+    headless_mode = st.checkbox("Run in headless mode for faster scraping (no visible browser)", value=False)
+
+    zip_and_send = st.checkbox("Also zip CSV + Images and send to Completed Reports folder", value=False)
+
+    # Add "Start Extraction" button below headless toggle
+    start_extraction = st.button("Start Extraction")
+
+    from urllib.parse import urlparse, unquote
+
+    try:
+        path = urlparse(url).path
+        # Extract the part after '/place/'
+        business_name_raw = path.split('/place/')[1].split('/')[0]
+        business_name = unquote(business_name_raw).replace('+', ' ')
+    except Exception:
+        business_name = "Unknown Business"
+
+    sanitized_business_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', business_name)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    debug_path = f"{sanitized_business_name}_debug_{timestamp}.txt"
+
+    # Scraper logic runs only when the Start Extraction button is pressed
+    if url and start_extraction:
         st.info("Launching browser...")
-        driver = launch_browser()
+        driver = launch_browser(headless_mode)
         driver.get(url)
+        # business_name is now extracted from the URL above
+        # business_name = driver.find_element(By.CLASS_NAME, 'DU9Pgb').text  # Extracted from URL instead
         st.info("🧭 Navigating to Google Business page... Please wait while the content loads.")
 
         try:
@@ -136,7 +172,7 @@ def main():
 
         # Export all collected reviews to CSV
         import pandas as pd
-        from datetime import datetime, timedelta
+        from datetime import timedelta
 
         def parse_relative_date(date_text):
             today = datetime.today()
@@ -309,7 +345,7 @@ def main():
                                 except:
                                     pass
                     if debug_mode:
-                        with open("debug_review_html_output.txt", "a", encoding="utf-8") as f:
+                        with open(debug_path, "a", encoding="utf-8") as f:
                             f.write(f"\n--- Review #{i+1} ---\n")
                             f.write(f"Used fallback: {source}\n")
                             f.write(f"Captured text:\n{text}\n")
@@ -326,7 +362,7 @@ def main():
             numeric_rating = int(re.search(r'\d', rating).group())
             parsed_date = parse_relative_date(date)
             if not parsed_date and debug_mode:
-                with open("debug_review_html_output.txt", "a", encoding="utf-8") as f:
+                with open(debug_path, "a", encoding="utf-8") as f:
                     f.write(f"[Missing Parsed Date] Review {review_id} → Raw date: {date}\n")
 
             image_elements = card.find_elements(By.XPATH, './/div[contains(@class, "KtCyie")]/button[contains(@style, "background-image")]')
@@ -338,7 +374,7 @@ def main():
                     img_url = ""
                     if "background-image" in style_attr:
                         if debug_mode:
-                            with open("debug_review_html_output.txt", "a", encoding="utf-8") as f:
+                            with open(debug_path, "a", encoding="utf-8") as f:
                                 f.write(f"[Image style attr] Review {review_id} → {style_attr}\n")
 
                         # Try matching both quoted and unquoted forms
@@ -351,7 +387,7 @@ def main():
                         os.makedirs(os.path.dirname(image_path), exist_ok=True)
                         urllib.request.urlretrieve(img_url, image_path)
                         if debug_mode:
-                            with open("debug_review_html_output.txt", "a", encoding="utf-8") as f:
+                            with open(debug_path, "a", encoding="utf-8") as f:
                                 f.write(f"[Image captured] Review {review_id} → {img_url}\n")
                         image_files.append(image_filename)
                 except Exception:
@@ -391,10 +427,18 @@ def main():
                         price_tags.append(tag_text)
                     else:
                         if debug_mode:
-                            with open("debug_review_html_output.txt", "a", encoding="utf-8") as f:
+                            with open(debug_path, "a", encoding="utf-8") as f:
                                 f.write(f"[Unrecognized tag under label '{current_label or 'none'}']: {tag_text}\n")
             except:
                 pass
+
+            # Check if owner responded
+            owner_responded = False
+            try:
+                card.find_element(By.CLASS_NAME, "CDe7pd")
+                owner_responded = True
+            except:
+                owner_responded = False
 
             data.append({
                 "ReviewUID": f"R{len(data)+1:03d}",
@@ -411,27 +455,80 @@ def main():
                 "Services": ", ".join(services),
                 "PositiveTags": ", ".join(positive_tags),
                 "NegativeTags": ", ".join(negative_tags),
-                "PriceTags": ", ".join(price_tags)
+                "PriceTags": ", ".join(price_tags),
+                "OwnerResponded": owner_responded,
+                "ClientName": business_name,
             })
 
         # Export to CSV and provide download options
         if data:
             df = pd.DataFrame(data)
-            # Show preview of first 3 reviews
-            st.subheader("🔍 Preview of First 3 Reviews")
-            # Automatic export block
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_dir = os.path.join("exports", "google")
-            os.makedirs(output_dir, exist_ok=True)
-            filename = f"google_reviews_{timestamp}.csv"
-            filepath = os.path.join(output_dir, filename)
-            df.to_csv(filepath, index=False)
-            st.success(f"✅ Exported automatically to: {filepath}")
+            filename = f"{sanitized_business_name}_reviews_{timestamp}.csv"
+            df.to_csv(filename, index=False)
         else:
             st.warning("No review data available for export.")
+            return  # Stop processing if no data
+
+        # Create and upload ZIP of image files
+        import zipfile
+
+        image_folder_path = os.path.join("exports", "google", "images")
+        zip_path = f"{sanitized_business_name}_images_{timestamp}.zip"
+
+        def create_zip_from_images(image_folder_path, output_zip_path):
+            with zipfile.ZipFile(output_zip_path, 'w') as zipf:
+                for root, _, files in os.walk(image_folder_path):
+                    for file in files:
+                        if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                            file_path = os.path.join(root, file)
+                            arcname = file
+                            zipf.write(file_path, arcname)
+            return output_zip_path
+
+        if os.path.exists(image_folder_path):
+            zip_result = create_zip_from_images(image_folder_path, zip_path)
+            import shutil
+            shutil.rmtree(image_folder_path, ignore_errors=True)
 
         # Close browser for now
         driver.quit()
+
+        # Handle ZIP and upload logic based on zip_and_send toggle
+        if zip_and_send:
+            combined_zip_name = f"{sanitized_business_name}_Completed_{timestamp}.zip"
+            with zipfile.ZipFile(combined_zip_name, 'w') as zipf:
+                if os.path.exists(filename):
+                    zipf.write(filename, arcname=filename)
+                    os.remove(filename)
+
+                if os.path.exists(zip_path):
+                    zipf.write(zip_path, arcname=zip_path)
+                    os.remove(zip_path)
+
+            completed_folder_id = "1zNFK4qrevy7lMTvXo3BHXckUmo0vbJ9a"
+            final_zip_link = upload_file_to_drive(combined_zip_name, folder_id=completed_folder_id)
+            st.write("📤 Completed ZIP uploaded to Completed Reports folder:", final_zip_link)
+
+            os.remove(combined_zip_name)
+        else:
+            # Proceed with normal individual uploads if zip_and_send is not selected
+            csv_link = upload_file_to_drive(filename, folder_id="1npT9OnZ8SwKTiVKRpWS2U8gxosooPTkZ")
+            st.write("📤 CSV uploaded to Google Drive:", csv_link)
+            os.remove(filename)
+
+            if os.path.exists(zip_path):
+                zip_link = upload_file_to_drive(zip_path, folder_id="1-GUlZL7EFxux19o__sfBax4F1snCQgdQ")
+                st.write("📤 Images ZIP uploaded to Google Drive:", zip_link)
+                st.caption("⚠️ Google Drive may not preview ZIP files correctly. Download to view contents.")
+                os.remove(zip_path)
+
+        # Always upload debug file to Debug Logs folder, regardless of ZIP export toggle
+        debug_folder_id = "1EtBEoQoCeAGzMo9KQD_pkHJoBhBTnXbm"
+        if os.path.exists(debug_path):
+            debug_link = upload_file_to_drive(debug_path, folder_id=debug_folder_id)
+            st.write("📤 Debug log uploaded to Debug Logs folder:", debug_link)
+            os.remove(debug_path)
 
 
 if __name__ == "__main__":
