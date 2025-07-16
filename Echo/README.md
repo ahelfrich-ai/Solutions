@@ -28,12 +28,19 @@ Echo is a streamlined Google Business review scraper designed for flexible data 
 ⸻
 
 📂 Folder Structure
+
 echo-scraper/
+
 ├── echo_Google_Business_HTML_v1.7.py   # Main script
+
 ├── drive_uploader.py                    # Handles Google Drive uploads
+
 ├── requirements.txt                     # Required Python packages
+
 ├── README.md                            # This file
+
 ├── LICENSE                              # MIT License
+
 ├── exports/                             # Temporary images folder (auto-deleted post-run)
 
 
