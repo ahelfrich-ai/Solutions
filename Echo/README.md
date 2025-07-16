@@ -6,7 +6,9 @@ Echo is a streamlined Google Business review scraper designed for flexible data 
 
 🚀 Key Features
 	•	Scrapes visible Google Business reviews
+ 
 	•	Extracts review text, timestamps, ratings, images, and structured tags
+ 
 	•	Handles fallbacks for malformed or missing review text
 	•	Exports clean CSVs with optional image ZIP packaging
 	•	Includes business name automatically in all file outputs
