@@ -64,31 +64,49 @@ echo-scraper/
 
 ⚙️ How It Works
 	1.	Paste the Google Maps Reviews tab link into Echo’s interface.
+ 
 	2.	Choose options for:
+ 
 	•	Headless mode (faster scraping)
+ 
 	•	Standard or Completed Reports ZIP delivery
+ 
 	3.	Click Start Extraction
+ 
 	4.	Echo scrapes the reviews, extracts images, and exports all data:
+ 
 	•	CSV
+ 
 	•	Images ZIP
+ 
 	•	Debug log (optional, for fallback review trace)
+ 
 	5.	All outputs are uploaded directly to Google Drive.
 
 ⸻
 
 📈 Use Cases
+
 	•	UX research and product feedback collection
+ 
 	•	Small business review management
+ 
 	•	Competitive analysis of public reviews
+ 
 	•	Client report generation (via Completed Reports ZIP)
 
 ⸻
 
 🔮 Coming in Echo v2
+
 	•	Web-hosted SaaS version
+ 
 	•	Built-in LLM analysis for summarization and insights
+ 
 	•	Verifier Tool for review count consistency
+ 
 	•	Deduplication across multiple runs
+ 
 	•	Dashboard visualization features
 
 ⸻
