@@ -1,4 +1,4 @@
-#Echo – Google Business Review Harvester (v1.7)
+# Echo – Google Business Review Harvester (v1.7)
 
 Echo is a streamlined Google Business review scraper designed for flexible data extraction and delivery. Built with Python, Streamlit, and Google Drive integration, Echo enables small businesses or consultants to quickly capture customer reviews and package them into shareable reports.
 
