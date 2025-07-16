@@ -114,3 +114,4 @@ echo-scraper/
 📄 License
 
 MIT License
+https://github.com/ahelfrich-ai/Solutions/blob/main/LICENSE
