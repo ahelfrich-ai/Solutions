@@ -47,11 +47,17 @@ echo-scraper/
 ⸻
 
 🛠️ Built With
+
 	•	Python 3.11
+ 
 	•	Streamlit
+ 
 	•	Undetected Chromedriver (Selenium)
+ 
 	•	Pandas
+ 
 	•	Google API Client (Drive integration)
+ 
 	•	Requests
 
 ⸻
